@@ -4,18 +4,15 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read('SETTING')
+set_config = False
 if not config.has_section('credentials'):
     config.add_section('credentials')
     config.set('credentials', 'TOKEN', '')
-    with open('SETTING', 'a+') as setting:
-        config.write(setting)
-        setting.close()
-if not config.has_section('configs'):
-    config.add_section('configs')
-    config.set('configs', 'TODO_LIMIT', '30')
+    set_config = True
+
+if set_config:
     with open('SETTING', 'a+') as setting:
         config.write(setting)
         setting.close()
 
 TOKEN = config.get('credentials', 'TOKEN')
-TODO_LIMIT = config.get('configs', 'TODO_LIMIT')
