@@ -1,18 +1,21 @@
-from sqlalchemy import create_engine, Integer, Column, String
-from sqlalchemy.ext.declarative import declarative_base
+# db models
+import datetime
 
-db_uri = 'sqlite:///db/db.sqlite'
-engine = create_engine(db_uri)
-
-Base = declarative_base()
+from db import *
 
 
-class Notice(Base):
-    __tablename__ ='notice'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(10))
-    num = Column(Integer)
+class BaseModel(Model):
+    class Meta:
+        database = db
 
 
-Base.metadata.create_all(bind=engine)
+class Notices(BaseModel):
+    id = PrimaryKeyField()
+    name = CharField(unique=True)
+    num = IntegerField(default=0)
+    datetime = DateTimeField(default=datetime.datetime.now())
 
+
+class Users(BaseModel):
+    user_id = IntegerField(unique=True)
+    is_set = BooleanField(default=False)

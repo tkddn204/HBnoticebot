@@ -10,6 +10,11 @@ if not config.has_section('credentials'):
     config.set('credentials', 'TOKEN', '')
     set_config = True
 
+if not config.has_section('frequency'):
+    config.add_section('frequency')
+    config.set('frequency', 'when', '10 13 14 19')
+    set_config = True
+
 if set_config:
     with open('SETTING', 'a+') as setting:
         config.write(setting)
