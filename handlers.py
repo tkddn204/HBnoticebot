@@ -10,7 +10,8 @@ from telegram.ext import CommandHandler, MessageHandler, Filters, \
 from util.logger import log
 from db.db import BotDB
 from text import *
-from crawling import get_notice, get_all_notice, get_max_of_find_things
+from util.config import FREQUENCY, CHANNEL_ID
+from crawling import get_notice, get_all_notice
 
 
 # Error! WYEEEEEEEE---
@@ -29,6 +30,7 @@ class Commands(WithDB):
         self.handlers = [
             CommandHandler('start', self.command_start),
             CommandHandler('help', self.command_help),
+            CommandHandler('new', self.command_new),
             CommandHandler('set', self.command_set, pass_job_queue=True),
             CommandHandler('unset', self.command_unset, pass_job_queue=True),
             MessageHandler(Filters.text, self.messages)
@@ -68,7 +70,9 @@ class Commands(WithDB):
         self.db.update_notice(FIND_THINGS, max_list)
         return result
 
-    def alarm(self, bot, job):
+    def view_update(self, bot, job=None, channel_id=None):
+        if job:
+            channel_id = job.context
         not_export = 0
         result = self.check_find_things()
         for find_things in FIND_THINGS:
@@ -79,31 +83,44 @@ class Commands(WithDB):
                     url = result[find_things]['url'][i]
                     export += (name + '(' + '<a href="{0}">'.format(url) + '링크' + '</a>)\n')
                 if export != find_things + ' \n':
-                    bot.sendMessage(job.context,
+                    bot.sendMessage(channel_id,
                                     text=export,
+                                    disable_notification=True,
                                     parse_mode=ParseMode.HTML)
                 else:
                     not_export += 1
-        if not_export >= len(FIND_THINGS):
-            bot.sendMessage(job.context,
-                            text='오늘은 업데이트 내역이 없습니다!',
-                            parse_mode=ParseMode.HTML)
 
-    def set_alarms(self, user_id, job_queue):
-        job_queue.run_once(self.alarm, datetime.timedelta(seconds=10),
-                            context=user_id,
-                            name='{} 10'.format(user_id))
-# days=tuple(range(5)),
+        if not_export < len(FIND_THINGS):
+            return bot.sendMessage(channel_id,
+                                   text=NEW_NOTICE,
+                                   parse_mode=ParseMode.HTML)
+
+    def set_alarms(self, channel_id, when, job_queue):
+        for w in when:
+            job_queue.run_daily(self.view_update, datetime.time(hour=int(w)),
+                                days=tuple(range(5)),
+                                context=channel_id,
+                                name='{0} {1}'.format(channel_id, w))
+
+    def command_new(self, bot, update):
+        self.view_update(bot, channel_id=CHANNEL_ID)
+
     def command_set(self, bot, update, job_queue):
-        user_id = update.message.from_user.id
-        self.set_alarms(user_id, job_queue)
-
+        channel_id = CHANNEL_ID
+        when = FREQUENCY.split(' ')
+        self.set_alarms(channel_id, when, job_queue)
+        text = ''
+        for w in when:
+            text += w + '시, '
         return bot.sendMessage(
             update.message.chat_id,
-            text=SET)
+            text=SET_ALARM.format(text[:-2]))
 
     def command_unset(self, bot, update, job_queue):
-        pass
+        if job_queue.jobs:
+            job_queue.stop()
+            bot.sendMessage(update.message.chat_id,
+                            text=UNSET_ALARM)
 
     def messages(self, bot, update):
         text = update.message.text
@@ -118,4 +135,3 @@ class Commands(WithDB):
 
     def get_handlers(self):
         return self.handlers
-

@@ -8,6 +8,7 @@ set_config = False
 if not config.has_section('credentials'):
     config.add_section('credentials')
     config.set('credentials', 'TOKEN', '')
+    config.set('credentials', 'channel_id', '@')
     set_config = True
 
 if not config.has_section('frequency'):
@@ -21,3 +22,5 @@ if set_config:
         setting.close()
 
 TOKEN = config.get('credentials', 'TOKEN')
+FREQUENCY = config.get('frequency', 'when')
+CHANNEL_ID = config.get('credentials', 'channel_id')

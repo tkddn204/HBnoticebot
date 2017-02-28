@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # HBHelper made by SsangWoo Han.
 import sys
-from util.config import TOKEN
+from util.config import TOKEN, CHANNEL_ID
 from util.logger import log
 from telegram.ext import Updater
 from handlers import Commands, error_handler
@@ -20,6 +20,10 @@ def main():
     if TOKEN == '':
         log.error('!! TOKEN Don\'t exist... Check your "SETTING" file!')
         sys.exit()
+    elif CHANNEL_ID == ('@' or None or ''):
+        log.error('!! CHANNEL_ID Don\'t exist... Check your "SETTING" file!')
+        sys.exit()
+
     updater = Updater(token=TOKEN)
     dp = updater.dispatcher
     add_handlers(dp)
