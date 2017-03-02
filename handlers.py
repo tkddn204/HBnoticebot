@@ -70,9 +70,8 @@ class Commands(WithDB):
         self.db.update_notice(FIND_THINGS, max_list)
         return result
 
-    def view_update(self, bot, job=None, channel_id=None):
-        if job:
-            channel_id = job.context
+    def view_update(self, bot, job):
+        channel_id = job if isinstance(job, str) else job.context
         not_export = 0
         result = self.check_find_things()
         for find_things in FIND_THINGS:
@@ -103,7 +102,7 @@ class Commands(WithDB):
                                 name='{0} {1}'.format(channel_id, w))
 
     def command_new(self, bot, update):
-        self.view_update(bot, channel_id=CHANNEL_ID)
+        self.view_update(bot, job=CHANNEL_ID)
 
     def command_set(self, bot, update, job_queue):
         channel_id = CHANNEL_ID
@@ -123,7 +122,11 @@ class Commands(WithDB):
                             text=UNSET_ALARM)
 
     def messages(self, bot, update):
-        text = update.message.text
+        if update.message.text is None:
+            self.command_help(bot, update)
+            return
+        else:
+            text = update.message.text
 
         export = ''
         (notices, urls) = get_notice(text)

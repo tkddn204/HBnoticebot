@@ -20,4 +20,4 @@ pip-selfcheck.json
 # private files
 SETTING
 test.py
-db.sqlite
+bot.db
