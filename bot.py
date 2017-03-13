@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*-
 # HBHelper made by SsangWoo Han.
 import sys
-from util.config import TOKEN, CHANNEL_ID
+from util.config import TOKEN, CHANNEL_ID, FREQUENCY
 from util.logger import log
 from telegram.ext import Updater
 from handlers import Commands, error_handler
 
 
 # Add handlers
-def add_handlers(dp):
-    for handler in Commands().get_handlers():
+def add_handlers(dp, commands):
+    for handler in commands.get_handlers():
         dp.add_handler(handler)
     dp.add_error_handler(error_handler)
 
@@ -26,7 +26,11 @@ def main():
 
     updater = Updater(token=TOKEN)
     dp = updater.dispatcher
-    add_handlers(dp)
+    commands = Commands()
+    add_handlers(dp, commands)
+
+    if not updater.job_queue.jobs():
+        commands.set_alarms(CHANNEL_ID, FREQUENCY.split(" "), updater.job_queue)
 
     updater.start_polling()
     log.info("Start polling!")

@@ -128,7 +128,7 @@ def get_all_notice():
 #         SA사업단 : SA사업단 공지사항 목록
 #         IT융합 : it융합인력양성사업단 목록
 #     '''
-#     find_things = '컴공'
+#     find_things = '홈페이지'
 #     (string, url) = get_notice(find_things)
 #     if find_things is 'computer_notice' or find_things is 'sa_notice':
 #         print("컴공 서버가 느리므로 자료가 늦게 뜹니다")
