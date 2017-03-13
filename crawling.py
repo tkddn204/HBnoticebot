@@ -3,49 +3,54 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from text import FIND_THINGS
+from text import FIND_THINGS, TEXT_ERROR
+from util.logger import log
 
 
 def crawling(url, *args):
     notice_data = []
     url_data = []
-    if args:
-        origin_url = url
-        for k in args:
-            url = url+k
-        html_code = requests.get(url)
-        html_code.encoding = 'euc-kr'
-        soup = BeautifulSoup(html_code.text, "html.parser")
-        soup_find = soup.find('table', attrs={'class': 'pr_table'}).find('tbody').findAll('a')
-        homepage = '&GotoPage=1' in args
-        if homepage:
-            soup_span_find = soup.find('table', attrs={'class': 'pr_table'})\
-                .findAll('span', attrs={'class': 'gray'})
-            for s in soup_span_find:
+    try:
+        if args:
+            origin_url = url
+            for k in args:
+                url = url+k
+            html_code = requests.get(url)
+            html_code.encoding = 'euc-kr'
+            soup = BeautifulSoup(html_code.text, "html.parser")
+            soup_find = soup.find('table', attrs={'class': 'pr_table'}).find('tbody').findAll('a')
+            homepage = '&GotoPage=1' in args
+            if homepage:
+                soup_span_find = soup.find('table', attrs={'class': 'pr_table'})\
+                    .findAll('span', attrs={'class': 'gray'})
+                for s in soup_span_find:
+                    if s.get('title'):
+                        notice_data.append(s.get('title'))
+
+            for s in soup_find:
                 if s.get('title'):
-                    notice_data.append(s.get('title'))
+                    if not s.get('title') == u'새창열림':
+                        notice_data.append(s.get('title'))
+                        if not homepage:
+                            url_data.append(origin_url + s.get('href'))
 
-        for s in soup_find:
-            if s.get('title'):
-                if not s.get('title') == u'새창열림':
-                    notice_data.append(s.get('title'))
-                    if not homepage:
-                        url_data.append(origin_url + s.get('href'))
+                if homepage and not s.get('href').startswith('.'):
+                    url_data.append(origin_url + s.get('href'))
 
-            if homepage and not s.get('href').startswith('.'):
-                url_data.append(origin_url + s.get('href'))
+        else:
+            html_code = requests.get(url)
+            soup = BeautifulSoup(html_code.text, "html.parser")
+            soup_find = soup.find('table', attrs={'class': 'board-list'}).findAll('a')
+            url = url.replace('/0201', '')
+            for s in soup_find:
+                notice_data.append(s.get_text())
+                url_data.append(url + s.get('href'))
 
-    else:
-        html_code = requests.get(url)
-        soup = BeautifulSoup(html_code.text, "html.parser")
-        soup_find = soup.find('table', attrs={'class': 'board-list'}).findAll('a')
-        url = url.replace('/0201', '')
-        for s in soup_find:
-            notice_data.append(s.get_text())
-            url_data.append(url + s.get('href'))
-
-    # print(notice_data.__len__(), url_data.__len__())
-    return notice_data, url_data
+        # print(notice_data.__len__(), url_data.__len__())
+        return notice_data, url_data
+    except Exception as e:
+        log.error(e)
+        return [TEXT_ERROR], ['0']
 
 
 def get_notice(what):

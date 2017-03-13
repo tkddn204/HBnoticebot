@@ -1,13 +1,13 @@
 # using sqlite3(peewee)
 # -*- coding: utf-8 -*-
-from db.models import Notices, Users
+from db.models import Notices
 from db import *
 
 
 class BotDB:
     def __init__(self):
         db.connect()
-        db.create_tables([Notices, Users], safe=True)
+        db.create_table(Notices, safe=True)
 
     # Notices
     def get_notice(self, notice_id=None, name=None):
@@ -70,39 +70,13 @@ class BotDB:
             else:
                 return False
 
-    # Users
-    def get_users(self, user_id=None):
-        try:
-            if user_id:
-                return Users.get(Users.user_id == user_id)
-            else:
-                return Users.select()
-        except Users.DoesNotExist:
-            return None
+    def set_enable(self, notice_name, enable=True):
+        notice = self.get_notice(name=notice_name)
+        notice.enable = enable
+        notice.save()
+        return None
 
-    def get_users_count(self):
-        return Users.select().count()
-
-    def get_user_is_set(self, user_id):
-        user = self.get_users(user_id)
-        if user:
-            return user.is_set
-        else:
-            return None
-
-    def create_users(self, users_id):
-        user = Users.create(users_id=users_id)
-        return user
-
-    def remove_users(self, users_id):
-        user = self.get_users(users_id)
-        user.delete_instance()
-
-    def update_users(self, users_id, is_set=False):
-        user = self.get_users(users_id)
-        if user:
-            user.is_set = is_set
-            user.save()
-            return True
-        else:
-            return False
+    def get_enable(self, notice_name):
+        notice = self.get_notice(name=notice_name)
+        enable = notice.enable
+        return bool(enable)

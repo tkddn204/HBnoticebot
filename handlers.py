@@ -1,11 +1,8 @@
 # Bot's Operation
 # -*- coding: utf-8 -*-
 import datetime
-from telegram import InlineKeyboardMarkup, \
-    InlineQueryResultArticle, InputTextMessageContent, ParseMode, \
-    ReplyKeyboardMarkup
-from telegram.ext import CommandHandler, MessageHandler, Filters, \
-    InlineQueryHandler, CallbackQueryHandler
+from telegram import ParseMode, ReplyKeyboardMarkup
+from telegram.ext import CommandHandler, MessageHandler, Filters
 
 from util.logger import log
 from db.db import BotDB
@@ -33,6 +30,7 @@ class Commands(WithDB):
             CommandHandler('new', self.command_new),
             CommandHandler('set', self.command_set, pass_job_queue=True),
             CommandHandler('unset', self.command_unset, pass_job_queue=True),
+            CommandHandler('setting', self.command_setting, pass_args=True),
             MessageHandler(Filters.text, self.messages)
         ]
 
@@ -63,9 +61,12 @@ class Commands(WithDB):
             notice = self.db.get_notice(name=find_things)
             result[find_things] = {'name': [], 'url': []}
             for count in range(len(find_list[find_things]['name'])):
-                if find_list[find_things]['num'][count] > notice.num:
-                    result[find_things]['name'].append(find_list[find_things]['name'][count])
-                    result[find_things]['url'].append(find_list[find_things]['url'][count])
+                try:
+                    if find_list[find_things]['num'][count] > notice.num:
+                        result[find_things]['name'].append(find_list[find_things]['name'][count])
+                        result[find_things]['url'].append(find_list[find_things]['url'][count])
+                except Exception:
+                    break
 
         self.db.update_notice(FIND_THINGS, max_list)
         return result
@@ -121,20 +122,49 @@ class Commands(WithDB):
             bot.sendMessage(update.message.chat_id,
                             text=UNSET_ALARM)
 
+    def command_setting(self, bot, update, args):
+        if len(args) < 1:
+            return bot.sendMessage(
+                update.message.chat_id,
+                text=TEXT_NOT_INPUT)
+        elif args[0] in FIND_THINGS:
+            enable = not self.db.get_enable(args[0])
+            self.db.set_enable(args[0], enable)
+            return bot.sendMessage(
+                update.message.chat_id,
+                text=TEXT_DONE.format(enable))
+
+    def command_close(self, bot, update, args):
+        if len(args) < 1:
+            return bot.sendMessage(
+                update.message.chat_id,
+                text=TEXT_NOT_INPUT)
+        elif args[0] in FIND_THINGS:
+            self.db.set_enable(args[0], False)
+            return bot.sendMessage(
+                update.message.chat_id,
+                text=TEXT_DONE)
+
     def messages(self, bot, update):
-        if update.message.text is None:
+        if not update.message.text:
             self.command_help(bot, update)
             return
         else:
             text = update.message.text
 
-        export = ''
-        (notices, urls) = get_notice(text)
-        for i in range(len(notices)):
-            export += ('<a href="{0}">'.format(urls[i]) + notices[i] + '</a>\n')
-        return bot.sendMessage(update.message.chat_id,
-                               text=export,
-                               parse_mode=ParseMode.HTML)
+        if text in FIND_THINGS:
+            if self.db.get_enable(text):
+                export = ''
+                (notices, urls) = get_notice(text)
+                for i in range(len(notices)):
+                    export += ('<a href="{0}">'.format(urls[i]) + notices[i] + '</a>\n')
+                return bot.sendMessage(update.message.chat_id,
+                                       text=export,
+                                       parse_mode=ParseMode.HTML)
+            else:
+                return bot.sendMessage(update.message.chat_id,
+                                       text=TEXT_CLOSE,
+                                       parse_mode=ParseMode.HTML)
 
     def get_handlers(self):
         return self.handlers
