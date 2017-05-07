@@ -77,6 +77,9 @@ class BotDB:
         return None
 
     def get_enable(self, notice_name):
-        notice = self.get_notice(name=notice_name)
-        enable = notice.enable
-        return bool(enable)
+        try:
+            notice = self.get_notice(name=notice_name)
+            enable = notice.enable
+            return bool(enable)
+        except AttributeError:
+            return True
