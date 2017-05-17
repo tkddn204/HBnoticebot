@@ -18,6 +18,6 @@ pip-selfcheck.json
 .idea
 
 # private files
-SETTING
+setting.ini
 test.py
 bot.db

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # HBHelper made by SsangWoo Han.
-import sys
 from util.config import TOKEN, CHANNEL_ID, FREQUENCY
 from util.logger import log
 from telegram.ext import Updater
@@ -18,11 +17,11 @@ def add_handlers(dp, commands):
 def main():
     log.info("HBhelperBot starting...")
     if TOKEN == '':
-        log.error('!! TOKEN Don\'t exist... Check your "SETTING" file!')
-        sys.exit()
+        log.error('!! TOKEN Don\'t exist... Check your "setting.ini" file!')
+        exit()
     elif CHANNEL_ID == ('@' or None or ''):
-        log.error('!! CHANNEL_ID Don\'t exist... Check your "SETTING" file!')
-        sys.exit()
+        log.error('!! CHANNEL_ID Don\'t exist... Check your "setting.ini" file!')
+        exit()
 
     updater = Updater(token=TOKEN)
     dp = updater.dispatcher
