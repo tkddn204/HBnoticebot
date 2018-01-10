@@ -13,7 +13,8 @@ from crawling import URL_DICT, get_notice, get_all_notice
 
 # Error! WYEEEEEEEE---
 def error_handler(bot, update, err):
-    log.error('!! Update %s :: \n %s' % (update, err))
+    if update:
+        log.error('!! Update %s :: %s' % (update, err))
 
 
 class WithDB:

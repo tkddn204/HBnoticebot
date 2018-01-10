@@ -15,7 +15,6 @@ def add_handlers(dp, commands):
 
 
 def main():
-    log.info("HBhelperBot starting...")
     if TOKEN == '':
         log.error('!! TOKEN Don\'t exist... Check your "setting.ini" file!')
         exit()
@@ -31,8 +30,8 @@ def main():
     if not updater.job_queue.jobs():
         commands.set_alarms(CHANNEL_ID, FREQUENCY.split(" "), updater.job_queue)
 
-    updater.start_polling()
-    log.info("Start polling!")
+    updater.start_polling(timeout=60)
+    log.info("HBhelperBot Idle...")
     updater.idle()
 
 
