@@ -1,17 +1,24 @@
-from crawling import get_all_notice
+from crawling import get_notice, get_all_notice
+from pprint import pprint
 
 
-def test():
+def test_get_all_notice():
     notice, notice_max = get_all_notice()
-    for name, list in notice.items():
-        print(name)
-        for key, val in list.items():
-            print(key, ":", val)
+    pprint(notice)
+    print("----------------------------")
+    pprint(notice_max)
 
-    for k, v in notice_max.items():
-        print(k, v)
 
-test()
+def test_get_notice(what: str):
+    pprint(get_notice(what))
+
+
+test_get_all_notice()
+# test_get_notice("홈페이지")
+# test_get_notice("학사공지")
+# test_get_notice("IT융합")
+# test_get_notice("컴공")
+# test_get_notice("SA사업단")
 
 # def test():
 #     ''' get notice:

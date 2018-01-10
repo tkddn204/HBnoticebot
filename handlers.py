@@ -48,50 +48,46 @@ class Commands(WithDB):
             text=HELP,
             reply_markup=ReplyKeyboardMarkup(LIST_KEYBOARD))
 
-    def check_find_things(self):
+    def check_more_than_max_numbers_of_find_things(self):
         notice_dict, notice_max_dict = get_all_notice()
         if not self.db.get_notice():
             self.db.create_notice(FIND_THINGS)
 
         result = {}
         for find_things in FIND_THINGS:
-            notice = self.db.get_notice(name=find_things)
-            result[find_things] = {'name': [], 'url': []}
-            for count in range(len(notice_dict[find_things]['name'])):
-                try:
-                    if notice_dict[find_things]['num'][count] > notice.num:
-                        result[find_things]['name'].append(notice_dict[find_things]['name'][count])
-                        result[find_things]['url'].append(notice_dict[find_things]['url'][count])
-                except Exception as e:
-                    log.error(e)
-                    break
+            current_db_notice_num = self.db.get_notice(name=find_things).num
+            result[find_things] = []
+            for notice in notice_dict[find_things]:
+                if notice['num'] > current_db_notice_num:
+                    result[find_things].append(notice)
 
         self.db.update_notice(notice_max_dict)
         return result
 
     def view_update(self, bot, job):
         channel_id = job if isinstance(job, str) else job.context
-        not_export = 0
-        result = self.check_find_things()
-        for find_things in FIND_THINGS:
-            if result[find_things]:
-                export = find_things + ' \n'
-                for i in range(len(result[find_things]['name'])):
-                    name = result[find_things]['name'][i]
-                    url = result[find_things]['url'][i]
-                    export += (name + '(' + '<a href="{0}">'.format(url) + '링크' + '</a>)\n')
-                if export != find_things + ' \n':
-                    bot.sendMessage(channel_id,
-                                    text=export,
-                                    disable_notification=True,
-                                    parse_mode=ParseMode.HTML)
-                else:
-                    not_export += 1
+        result = self.check_more_than_max_numbers_of_find_things()
+        last_message = ''
+        for find_thing in FIND_THINGS:
+            if result[find_thing]:
+                export_message = '--- ' + find_thing + ' ---\n'
+                count = 0
+                for notice in result[find_thing]:
+                    count += 1
+                    export_message += notice['title'] + '(' \
+                                      + '<a href="{0}">'.format(notice['url']) \
+                                      + '링크' + '</a>)\n'
+                bot.sendMessage(channel_id,
+                                text=export_message,
+                                disable_notification=True,
+                                parse_mode=ParseMode.HTML)
 
-        # if not_export < len(FIND_THINGS):
-        #     return bot.sendMessage(channel_id,
-        #                            text=NEW_NOTICE,
-        #                            parse_mode=ParseMode.HTML)
+                last_message += '{0}({1}개)/'.format(find_thing, count)
+
+        if last_message:
+            bot.sendMessage(channel_id,
+                            text=NEW_NOTICE + last_message[:-1],
+                            parse_mode=ParseMode.HTML)
 
     def set_alarms(self, channel_id, when, job_queue):
         for w in when:
