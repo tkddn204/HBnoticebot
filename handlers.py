@@ -148,12 +148,12 @@ class Commands(WithDB):
 
         if text in FIND_THINGS:
             if self.db.get_enable(text):
-                export = ''
-                (notices, urls) = get_notice(text)
-                for i in range(len(notices)):
-                    export += ('<a href="{0}">'.format(urls[i]) + notices[i] + '</a>\n')
+                export_message = ''
+                notice = get_notice(text)
+                for post in notice:
+                    export_message += '{0}(<a href="{1}">링크</a>)\n'.format(post['title'], post['url'])
                 return bot.sendMessage(update.message.chat_id,
-                                       text=export,
+                                       text=export_message,
                                        parse_mode=ParseMode.HTML)
             else:
                 return bot.sendMessage(update.message.chat_id,
