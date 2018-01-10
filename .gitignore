@@ -11,7 +11,7 @@ util/__pycache__/
 [Ll]ocal
 [Ss]cripts
 pyvenv.cfg
-.venv
+venv
 pip-selfcheck.json
 
 # pycharm

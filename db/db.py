@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from db.models import Notices
 from db import *
-
+from datetime import datetime
 
 class BotDB:
     def __init__(self):
@@ -53,22 +53,28 @@ class BotDB:
         else:
             return False
 
-    def update_notice(self, name=None, num=0):
-        if isinstance(name, list) and isinstance(num, list):
-            for na, nu in zip(name, num):
-                notice = self.get_notice(name=na)
-                if notice:
-                    notice.num = nu
-                    notice.save()
-
-        else:
+    def update_notice(self, max_dict: dict, name=None, num=0):
+        for name, max_num in max_dict.items():
             notice = self.get_notice(name=name)
             if notice:
-                notice.num = num
+                notice.num = max_num
+                notice.datetime = datetime.now()
                 notice.save()
-                return True
-            else:
-                return False
+        # if isinstance(name, list) and isinstance(num, list):
+        #     for na, nu in zip(name, num):
+        #         notice = self.get_notice(name=na)
+        #         if notice:
+        #             notice.num = nu
+        #             notice.save()
+        #
+        # else:
+        #     notice = self.get_notice(name=name)
+        #     if notice:
+        #         notice.num = num
+        #         notice.save()
+        #         return True
+        #     else:
+        #         return False
 
     def set_enable(self, notice_name, enable=True):
         notice = self.get_notice(name=notice_name)

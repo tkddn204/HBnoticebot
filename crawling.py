@@ -3,50 +3,56 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
-from text import FIND_THINGS, TEXT_ERROR
+from text import TEXT_ERROR
 from util.logger import log
 
 
-def crawling(url, *args):
-    notice_data = []
-    url_data = []
+URL_DICT = {
+    '홈페이지': 'http://www.hanbat.ac.kr/_prog/gboard/board.php?code=news&GotoPage=1',
+    '학사공지': 'http://www.hanbat.ac.kr/_prog/gboard/board.php?code=bachelor&GotoPage=1',
+    '컴공': 'http://newclass.hanbat.ac.kr/ctnt/computer/board.php?mode=list&tbl_cd=computer_notice',
+    'SA사업단': 'http://newclass.hanbat.ac.kr/ctnt/computer/board.php?mode=list&tbl_cd=biz_notice',
+    'IT융합': 'http://www.ithanbat.kr/0201',
+}
+
+
+def crawling(name, url):
+    original_url = url
     try:
-        if args:
-            origin_url = url
-            for k in args:
-                url = url+k
-            html_code = requests.get(url)
-            html_code.encoding = 'euc-kr'
-            soup = BeautifulSoup(html_code.text, "html.parser")
-            soup_find = soup.find('table', attrs={'class': 'pr_table'}).find('tbody').findAll('a')
-            homepage = '&GotoPage=1' in args
-            if homepage:
-                soup_span_find = soup.find('table', attrs={'class': 'pr_table'})\
-                    .findAll('span', attrs={'class': 'gray'})
-                for s in soup_span_find:
-                    if s.get('title'):
-                        notice_data.append(s.get('title'))
+        notice_data, url_data = [], []
 
+        html_code = requests.get(url)
+        html_code.encoding = 'euc-kr' if name != 'IT융합' else None
+        soup = BeautifulSoup(html_code.text, "html.parser")
+
+        if name == 'IT융합':
+            soup_find = soup.find('table', attrs={'class': 'board-list'}) \
+                .findAll('a')
             for s in soup_find:
-                if s.get('title'):
-                    if not s.get('title') == u'새창열림':
-                        notice_data.append(s.get('title'))
-                        if not homepage:
-                            url_data.append(origin_url + s.get('href'))
+                notice_data.append(s.text)
+                url_data.append(url[:-5] + s.get('href'))
 
-                if homepage and not s.get('href').startswith('.'):
-                    url_data.append(origin_url + s.get('href'))
+            return notice_data, url_data
 
-        else:
-            html_code = requests.get(url)
-            soup = BeautifulSoup(html_code.text, "html.parser")
-            soup_find = soup.find('table', attrs={'class': 'board-list'}).findAll('a')
-            url = url.replace('/0201', '')
+        if name == '홈페이지' or name == '학사공지':
+            soup_span_find = soup.find('table', attrs={'class': 'pr_table'}) \
+                .findAll('span', attrs={'class': 'gray'})
+            soup_find = soup.find('table', attrs={'class': 'pr_table'}) \
+                .find('tbody').findAll('a')
+            for ss in soup_span_find:
+                if ss.get('title'):
+                    notice_data.append(ss.get('title'))
             for s in soup_find:
-                notice_data.append(s.get_text())
-                url_data.append(url + s.get('href'))
+                if not s.get('title'):
+                    url_data.append(original_url + s.get('href'))
 
-        # print(notice_data.__len__(), url_data.__len__())
+        soup_find = soup.find('table', attrs={'class': 'pr_table'}) \
+            .find('tbody').findAll('a')
+        for s in soup_find:
+            if s.get('title') and not s.get('title') == u'새창열림':
+                notice_data.append(s.get('title'))
+                url_data.append(original_url + s.get('href'))
+
         return notice_data, url_data
     except Exception as e:
         log.error(e)
@@ -54,87 +60,24 @@ def crawling(url, *args):
 
 
 def get_notice(what):
-    if what == '홈페이지':
-        url = 'http://www.hanbat.ac.kr/_prog/gboard/'
-        php = 'board.php?code=news'
-        notice_list = '&GotoPage=1'
-    elif what == '학사공지':
-        url = 'http://www.hanbat.ac.kr/_prog/gboard/'
-        php = 'board.php?code=bachelor'
-        notice_list = '&GotoPage=1'
-    elif what == '컴공':
-        url = 'http://newclass.hanbat.ac.kr/ctnt/computer/'
-        php = 'board.php?mode=list'
-        notice_list = '&tbl_cd=computer_notice'
-    elif what == 'SA사업단':
-        url = 'http://newclass.hanbat.ac.kr/ctnt/computer/'
-        php = 'board.php?mode=list'
-        notice_list = '&tbl_cd=biz_notice'
-    elif what == 'IT융합':
-        url = 'http://www.ithanbat.kr/0201'
-        return crawling(url)
+    if what in list(URL_DICT.keys()):
+        return crawling(what, URL_DICT[what])
     else:
         return print("파라메터가 없거나 잘못 입력하셨습니다.")
-    return crawling(url, php, notice_list)
 
 
-def get_max_of_nums(urls, find_things):
-    pattern = 'id/([\d]+)' if find_things == 'IT융합' else 'no=([\d]+)'
-    r = re.compile(pattern)
-    result = '0'
-    for u in urls:
-        if r.findall(u):
-            s = r.findall(u)[0]
-            if (s != result) and (int(s) > int(result)):
-                result = int(s) if r.search(u) else 0
-
-    return result
-
-
-def get_max_of_find_things():
-    num = []
-    for things in FIND_THINGS:
-        (find, url) = get_notice(things)
-        num.append(get_max_of_nums(url, things))
-    return num
-
-
-def get_nums(urls, find_things):
-    pattern = 'id/([\d]+)' if find_things == 'IT융합' else 'no=([\d]+)'
-    r = re.compile(pattern)
-    result = []
-    for u in urls:
-        if r.findall(u):
-            result.append(int(r.findall(u)[0]))
-
-    return result
+def get_nums(urls, name):
+        pattern = 'id/([\d]+)' if name == 'IT융합' else 'no=([\d]+)'
+        re_com = re.compile(pattern)
+        return (int(re_com.findall(u)[0]) if re_com.findall(u) else None for u in urls)
 
 
 def get_all_notice():
-    result = {}
-    for find_things in FIND_THINGS:
-        result[find_things] = {'name': [], 'url': [], 'num': [], 'max': 0}
-        result[find_things]['name'], result[find_things]['url'] = get_notice(find_things)
-        result[find_things]['num'] = get_nums(result[find_things]['url'], find_things)
-        result[find_things]['max'] = get_max_of_nums(result[find_things]['url'], find_things)
-    return result
-
-
-# def test():
-#     ''' get notice:
-#         홈페이지 : 한밭대 홈페이지 공지사항 목록
-#         학사공지 : 한밭대 홈페이지 학사공지 목록
-#         컴공 : 컴공 공지사항 목록
-#         SA사업단 : SA사업단 공지사항 목록
-#         IT융합 : it융합인력양성사업단 목록
-#     '''
-#     find_things = '홈페이지'
-#     (string, url) = get_notice(find_things)
-#     if find_things is 'computer_notice' or find_things is 'sa_notice':
-#         print("컴공 서버가 느리므로 자료가 늦게 뜹니다")
-#     for u in url:
-#         print(u)
-#         print(get_nums(u, find_things))
-#
-# if __name__ == '__main__':
-#     test()
+    notice_dict = {}
+    notice_max_dict = {}
+    for name, url in URL_DICT.items():
+        notice_dict[name] = {'name': [], 'url': []}
+        notice_dict[name]['name'], notice_dict[name]['url'] = crawling(name, url)
+        num_list = get_nums(notice_dict[name]['url'], name)
+        notice_max_dict[name] = max(num_list) if num_list else 0
+    return notice_dict, notice_max_dict

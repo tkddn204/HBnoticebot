@@ -8,7 +8,7 @@ from util.logger import log
 from db.db import BotDB
 from text import *
 from util.config import FREQUENCY, CHANNEL_ID
-from crawling import get_notice, get_all_notice
+from crawling import URL_DICT, get_notice, get_all_notice
 
 
 # Error! WYEEEEEEEE---
@@ -49,10 +49,7 @@ class Commands(WithDB):
             reply_markup=ReplyKeyboardMarkup(LIST_KEYBOARD))
 
     def check_find_things(self):
-        find_list = get_all_notice()
-        max_list = []
-        for find_things in FIND_THINGS:
-            max_list.append(find_list[find_things]['max'])
+        notice_dict, notice_max_dict = get_all_notice()
         if not self.db.get_notice():
             self.db.create_notice(FIND_THINGS)
 
@@ -60,15 +57,16 @@ class Commands(WithDB):
         for find_things in FIND_THINGS:
             notice = self.db.get_notice(name=find_things)
             result[find_things] = {'name': [], 'url': []}
-            for count in range(len(find_list[find_things]['name'])):
+            for count in range(len(notice_dict[find_things]['name'])):
                 try:
-                    if find_list[find_things]['num'][count] > notice.num:
-                        result[find_things]['name'].append(find_list[find_things]['name'][count])
-                        result[find_things]['url'].append(find_list[find_things]['url'][count])
-                except Exception:
+                    if notice_dict[find_things]['num'][count] > notice.num:
+                        result[find_things]['name'].append(notice_dict[find_things]['name'][count])
+                        result[find_things]['url'].append(notice_dict[find_things]['url'][count])
+                except Exception as e:
+                    log.error(e)
                     break
 
-        self.db.update_notice(FIND_THINGS, max_list)
+        self.db.update_notice(notice_max_dict)
         return result
 
     def view_update(self, bot, job):
@@ -90,10 +88,10 @@ class Commands(WithDB):
                 else:
                     not_export += 1
 
-        if not_export < len(FIND_THINGS):
-            return bot.sendMessage(channel_id,
-                                   text=NEW_NOTICE,
-                                   parse_mode=ParseMode.HTML)
+        # if not_export < len(FIND_THINGS):
+        #     return bot.sendMessage(channel_id,
+        #                            text=NEW_NOTICE,
+        #                            parse_mode=ParseMode.HTML)
 
     def set_alarms(self, channel_id, when, job_queue):
         for w in when:
