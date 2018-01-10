@@ -1,0 +1,11 @@
+[Unit]
+Description=Telegram HBnoticebot
+After=network.target
+
+[Service]
+Type=idle
+WorkingDirectory=/home/pi/HBnoticebot
+ExecStart=/home/pi/HBnoticebot/venv/bin/python bot.py -u > /home/pi/logs/telegram_notice.log 2>&1
+
+[Install]
+WantedBy=multi-user.target
