@@ -15,6 +15,10 @@ if not config.has_section('frequency'):
     config.add_section('frequency')
     config.set('frequency', 'when', '10 13 16 19')
 
+if not config.has_section('logging'):
+    config.set('logging', 'dir_name', 'HBnoticebot.log')
+    config.set('logging', 'file_name', 'HBnoticebot.log')
+
 if set_config:
     with open('SETTING', 'a+') as setting:
         config.write(setting)
@@ -23,3 +27,5 @@ if set_config:
 TOKEN = config.get('credentials', 'token')
 FREQUENCY = config.get('frequency', 'when')
 CHANNEL_ID = config.get('credentials', 'channel_id')
+LOGGING_DIR = config.get('logging', 'dir_name')
+LOGGING_FILE = config.get('logging', 'file_name')

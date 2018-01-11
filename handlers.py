@@ -49,7 +49,7 @@ class Commands(WithDB):
             text=HELP,
             reply_markup=ReplyKeyboardMarkup(LIST_KEYBOARD))
 
-    def check_more_than_max_numbers_of_find_things(self):
+    def __check_more_than_max_numbers_of_find_things(self):
         notice_dict, notice_max_dict = get_all_notice()
         if not self.db.get_notice():
             self.db.create_notice(FIND_THINGS)
@@ -65,9 +65,9 @@ class Commands(WithDB):
         self.db.update_notice(notice_max_dict)
         return result
 
-    def view_update(self, bot, job):
+    def __view_update(self, bot, job):
         channel_id = job if isinstance(job, str) else job.context
-        result = self.check_more_than_max_numbers_of_find_things()
+        result = self.__check_more_than_max_numbers_of_find_things()
         last_message = ''
         for find_thing in FIND_THINGS:
             if result[find_thing]:
@@ -86,19 +86,24 @@ class Commands(WithDB):
                 last_message += '{0}({1}개)/'.format(find_thing, count)
 
         if last_message:
+            message_text = last_message[:-1]
             bot.sendMessage(channel_id,
-                            text=NEW_NOTICE + last_message[:-1],
+                            text=NEW_NOTICE+message_text,
                             parse_mode=ParseMode.HTML)
+        else:
+            message_text = '공지사항 없음'
+
+        log.info(message_text)
 
     def set_alarms(self, channel_id, when, job_queue):
         for w in when:
-            job_queue.run_daily(self.view_update, datetime.time(hour=int(w)),
+            job_queue.run_daily(self.__view_update, datetime.time(hour=int(w)),
                                 days=tuple(range(5)),
                                 context=channel_id,
                                 name='{0} {1}'.format(channel_id, w))
 
     def command_new(self, bot, update):
-        self.view_update(bot, job=CHANNEL_ID)
+        self.__view_update(bot, job=CHANNEL_ID)
 
     def command_set(self, bot, update, job_queue):
         channel_id = CHANNEL_ID
