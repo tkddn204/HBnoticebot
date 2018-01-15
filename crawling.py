@@ -55,18 +55,21 @@ def crawling(name, url):
             soup_find = soup.find('table', attrs={'class': 'pr_table'}) \
                 .find('tbody').findAll('a')
             if len(soup_span_find) > 0:
+                ss_index = 0
                 for ss in soup_span_find:
                     if ss.get('title'):
                         notice.append({
                             'title': ss.get('title')
                         })
-                index = 0
+                        ss_index += 1
+
+                s_index = 0
                 for s in soup_find:
                     if not s.get('title'):
                         s_url = original_url + s.get('href')
-                        notice[index]['num'] = int(re.compile('no=([\d]+)').findall(s_url)[0]),
-                        notice[index]['url'] = s_url
-                        index += 1
+                        if s_index <= ss_index:
+                            notice[s_index]['num'] = int(re.compile('no=([\d]+)').findall(s_url)[0])
+                            notice[s_index]['url'] = s_url
 
         soup_find = soup.find('table', attrs={'class': 'pr_table'}) \
             .find('tbody').findAll('a')
