@@ -16,7 +16,8 @@ if not config.has_section('frequency'):
     config.set('frequency', 'when', '10 13 16 19')
 
 if not config.has_section('logging'):
-    config.set('logging', 'dir_name', 'HBnoticebot.log')
+    config.add_section('logging')
+    config.set('logging', 'dir_name', './')
     config.set('logging', 'file_name', 'HBnoticebot.log')
 
 if set_config:

@@ -75,7 +75,10 @@ def crawling(name, url):
             .find('tbody').findAll('a')
         for s in soup_find:
             if s.get('title') and not s.get('title') == u'새창열림':
-                s_url = original_url + s.get('href')
+                if name == '컴공' or name == 'SA사업단':
+                    s_url = 'http://newclass.hanbat.ac.kr/ctnt/computer/' + s.get('href')
+                else:
+                    s_url = original_url + s.get('href')
                 notice.append({
                     'num': int(re.compile('no=([\d]+)').findall(s_url)[0]),
                     'title': s.get('title'),

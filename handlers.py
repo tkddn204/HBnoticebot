@@ -8,7 +8,7 @@ from util.logger import log
 from db.db import BotDB
 from text import *
 from util.config import FREQUENCY, CHANNEL_ID
-from crawling import URL_DICT, get_notice, get_all_notice
+from crawling import get_notice, get_all_notice
 
 
 # Error! WYEEEEEEEE---
