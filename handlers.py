@@ -102,6 +102,7 @@ class Commands(WithDB):
                                 name='{0} {1}'.format(channel_id, w))
 
     def command_new(self, bot, update):
+        log.info('[/new] get notice list')
         self.__view_update(bot, job=CHANNEL_ID)
 
     def command_set(self, bot, update, job_queue):
@@ -111,6 +112,7 @@ class Commands(WithDB):
         text = ''
         for w in when:
             text += '{0}시, '.format(w)
+        log.info('[/set] {0}'.format(SET_ALARM.format(text[:-2])))
         return bot.sendMessage(
             update.message.chat_id,
             text=SET_ALARM.format(text[:-2]))
@@ -118,6 +120,7 @@ class Commands(WithDB):
     def command_unset(self, bot, update, job_queue):
         if job_queue.jobs:
             job_queue.stop()
+            log.info('[/unset] {0}'.format(UNSET_ALARM))
             bot.sendMessage(update.message.chat_id,
                             text=UNSET_ALARM)
 
@@ -129,6 +132,7 @@ class Commands(WithDB):
         elif args[0] in FIND_THINGS:
             enable = not self.db.get_enable(args[0])
             self.db.set_enable(args[0], enable)
+            log.info('[/setting] {0} {1} '.format(args[0], TEXT_DONE.format(enable)))
             return bot.sendMessage(
                 update.message.chat_id,
                 text=TEXT_DONE.format(enable))
@@ -140,9 +144,10 @@ class Commands(WithDB):
                 text=TEXT_NOT_INPUT)
         elif args[0] in FIND_THINGS:
             self.db.set_enable(args[0], False)
+            log.info('[/close] {0} {1} '.format(args[0], TEXT_DONE.format(False)))
             return bot.sendMessage(
                 update.message.chat_id,
-                text=TEXT_DONE)
+                text=TEXT_DONE.format(False))
 
     def messages(self, bot, update):
         if not update.message.text:
@@ -155,11 +160,12 @@ class Commands(WithDB):
             if self.db.get_enable(text):
                 export_message = ''
                 notice, max_num = get_notice(text)
-                if notice is dict:
-                    for post in notice:
-                        export_message += '{0}(<a href="{1}">링크</a>)\n'.format(post['title'], post['url'])
-                else:
-                    export_message += notice
+                for post in notice:
+                    export_message += '{0}(<a href="{1}">링크</a>)\n'.format(post['title'], post['url'])
+                log.info('[{0}] {1}({2})님이 {3}개 요청'.format(text,
+                                                           update.message.from_user.first_name,
+                                                           update.message.chat_id,
+                                                           len(notice)))
                 return bot.sendMessage(update.message.chat_id,
                                        text=export_message,
                                        parse_mode=ParseMode.HTML)
