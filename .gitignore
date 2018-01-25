@@ -21,3 +21,6 @@ pip-selfcheck.json
 setting.ini
 test.py
 bot.db
+
+# log file
+*.log

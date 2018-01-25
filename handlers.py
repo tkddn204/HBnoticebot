@@ -40,7 +40,7 @@ class Commands(WithDB):
 
         return bot.sendMessage(
             update.message.chat_id,
-            text=(START.format(bot_name=bot.name, user_name=user_name)),
+            text=START.format(bot_name=bot.name, user_name=user_name),
             reply_markup=ReplyKeyboardMarkup(LIST_KEYBOARD))
 
     def command_help(self, bot, update):
@@ -71,13 +71,12 @@ class Commands(WithDB):
         last_message = ''
         for find_thing in FIND_THINGS:
             if result[find_thing]:
-                export_message = '--- ' + find_thing + ' ---\n'
+                export_message = '--- {0} ---\n'.format(find_thing)
                 count = 0
                 for notice in result[find_thing]:
                     count += 1
-                    export_message += notice['title'] + '(' \
-                                      + '<a href="{0}">'.format(notice['url']) \
-                                      + '링크' + '</a>)\n'
+                    export_message += '{title}(<a href="{url}">링크</a>)\n'\
+                        .format(title=notice['title'], url=notice['url'])
                 bot.sendMessage(channel_id,
                                 text=export_message,
                                 disable_notification=True,
@@ -111,7 +110,7 @@ class Commands(WithDB):
         self.set_alarms(channel_id, when, job_queue)
         text = ''
         for w in when:
-            text += w + '시, '
+            text += '{0}시, '.format(w)
         return bot.sendMessage(
             update.message.chat_id,
             text=SET_ALARM.format(text[:-2]))
@@ -156,8 +155,11 @@ class Commands(WithDB):
             if self.db.get_enable(text):
                 export_message = ''
                 notice = get_notice(text)
-                for post in notice:
-                    export_message += '{0}(<a href="{1}">링크</a>)\n'.format(post['title'], post['url'])
+                if notice is dict:
+                    for post in notice:
+                        export_message += '{0}(<a href="{1}">링크</a>)\n'.format(post['title'], post['url'])
+                else:
+                    export_message += notice
                 return bot.sendMessage(update.message.chat_id,
                                        text=export_message,
                                        parse_mode=ParseMode.HTML)

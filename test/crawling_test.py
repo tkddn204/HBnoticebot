@@ -19,6 +19,7 @@ test_get_all_notice()
 # test_get_notice("IT융합")
 # test_get_notice("컴공")
 # test_get_notice("SA사업단")
+# test_get_notice("asdf")
 
 # def test():
 #     ''' get notice:
