@@ -42,11 +42,12 @@ def crawling(name, url):
             max_num = 0
             for s in soup_find:
                 s_url = url[:-5] + s.get('href')
+                num = int(re.compile('id/([\d]+)').findall(s_url)[0])
                 notice.append({
+                    'num': num,
                     'title': s.text,
                     'url': s_url
                 })
-                num = int(re.compile('id/([\d]+)').findall(s_url)[0])
                 max_num = num if max_num <= num else max_num
 
             return notice, max_num
@@ -56,12 +57,14 @@ def crawling(name, url):
 
         if name == '홈페이지' or name == '학사공지':
             title_list = list(filter(lambda item: item != u'새창열림',
-                                re.compile('title="(.+?)"').findall(str(soup_find))))
+                                     re.compile('title="(.+?)"').findall(str(soup_find))))
             url_list = list(filter(lambda item: item.startswith('b'),
-                              re.compile('href="(.+?)"').findall(str(soup_find))))
-            max_num = max([int(re.compile('no=([\d]+)').findall(url)[0]) for url in url_list])
-            for title, path in zip(title_list, url_list):
+                                   re.compile('href="(.+?)"').findall(str(soup_find))))
+            num_list = [int(re.compile('no=([\d]+)').findall(url)[0]) for url in url_list]
+            max_num = max(num_list)
+            for title, path, num in zip(title_list, url_list, num_list):
                 notice.append({
+                    'num': num,
                     'title': title,
                     'url': 'http://www.hanbat.ac.kr/_prog/gboard/' + path.replace('&amp;', '&')
                 })
@@ -73,11 +76,12 @@ def crawling(name, url):
             for s in soup_find:
                 if s.get('title'):
                     s_url = 'http://newclass.hanbat.ac.kr/ctnt/computer/' + s.get('href')
+                    num = int(re.compile('no=([\d]+)').findall(s_url)[0])
                     notice.append({
+                        'num': num,
                         'title': s.get('title'),
                         'url': s_url
                     })
-                    num = int(re.compile('no=([\d]+)').findall(s_url)[0])
                     max_num = num if max_num <= num else max_num
 
             return notice, max_num
