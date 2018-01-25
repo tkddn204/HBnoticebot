@@ -154,7 +154,7 @@ class Commands(WithDB):
         if text in FIND_THINGS:
             if self.db.get_enable(text):
                 export_message = ''
-                notice = get_notice(text)
+                notice, max_num = get_notice(text)
                 if notice is dict:
                     for post in notice:
                         export_message += '{0}(<a href="{1}">링크</a>)\n'.format(post['title'], post['url'])
