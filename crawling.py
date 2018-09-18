@@ -3,21 +3,17 @@ import re
 import requests
 from bs4 import BeautifulSoup
 
+# SSL 인증서 문제로 인한 경고 메세지 로그 해제
+import urllib3
+urllib3.disable_warnings()
+
 from text import TEXT_ERROR
 from util.logger import log
-
-
-URL_DICT = {
-    '홈페이지': 'http://www.hanbat.ac.kr/_prog/gboard/board.php?code=news&GotoPage=1',
-    '학사공지': 'http://www.hanbat.ac.kr/_prog/gboard/board.php?code=bachelor&GotoPage=1',
-    '컴공': 'http://newclass.hanbat.ac.kr/ctnt/computer/board.php?mode=list&tbl_cd=computer_notice',
-    # 'SA사업단': 'http://newclass.hanbat.ac.kr/ctnt/computer/board.php?mode=list&tbl_cd=biz_notice',
-    'IT융합': 'http://www.ithanbat.kr/0201',
-}
-
+from urls import URL_DICT
 
 def crawling(name, url):
-    """
+    """ 공지사항 크롤링 메소드
+
     :param name: 크롤링할 이름
     :param url: 크롤링할 URL
     :return: [
@@ -31,7 +27,7 @@ def crawling(name, url):
     try:
         notice = []
 
-        html_code = requests.get(url)
+        html_code = requests.get(url, verify=False)
         html_code.encoding = 'euc-kr' if name != 'IT융합' else None
         soup = BeautifulSoup(html_code.text, "html.parser")
 
@@ -55,7 +51,7 @@ def crawling(name, url):
         soup_find = soup.find('table', attrs={'class': 'pr_table'}) \
             .find('tbody').findAll('a')
 
-        if name == '홈페이지' or name == '학사공지':
+        if name == '홈페이지' or name == '학사공지' or name == '주요행사':
             title_list = list(filter(lambda item: item != u'새창열림',
                                      re.compile('title="(.+?)"').findall(str(soup_find))))
             url_list = list(filter(lambda item: item.startswith('b'),
@@ -66,7 +62,7 @@ def crawling(name, url):
                 notice.append({
                     'num': num,
                     'title': title,
-                    'url': 'http://www.hanbat.ac.kr/_prog/gboard/' + path.replace('&amp;', '&')
+                    'url': 'https://www.hanbat.ac.kr/_prog/gboard/' + path.replace('&amp;', '&')
                 })
 
             return notice, max_num

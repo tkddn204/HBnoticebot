@@ -1,7 +1,6 @@
 from crawling import get_notice, get_all_notice
 from pprint import pprint
 
-
 def test_get_all_notice():
     notice, notice_max = get_all_notice()
     pprint(notice)
