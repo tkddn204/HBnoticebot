@@ -102,7 +102,9 @@ class Commands(WithDB):
                                 name='{0} {1}'.format(channel_id, w))
 
     def command_new(self, bot, update):
-        log.info('[/new] get notice list')
+        log.info('[/new] {0}({1})님이 리스트 새로 요청'.format(
+                                                   update.message.from_user.first_name,
+                                                   update.message.chat_id))
         self.__view_update(bot, job=CHANNEL_ID)
 
     def command_set(self, bot, update, job_queue):

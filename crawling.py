@@ -51,7 +51,7 @@ def crawling(name, url):
         soup_find = soup.find('table', attrs={'class': 'pr_table'}) \
             .find('tbody').findAll('a')
 
-        if name == '홈페이지' or name == '학사공지' or name == '주요행사':
+        if name == '홈페이지' or name == '학사공지' or name == '학생참여행사':
             title_list = list(filter(lambda item: item != u'새창열림',
                                      re.compile('title="(.+?)"').findall(str(soup_find))))
             url_list = list(filter(lambda item: item.startswith('b'),
