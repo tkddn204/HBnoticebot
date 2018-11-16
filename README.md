@@ -12,4 +12,4 @@
 - ~~한밭대학교 SA사업단(폐지)~~
 
 ## 라이센스
-[Apache License 2.0](https://github.com/tkddn204/HBnoticebot/LICENSE)
+[Apache License 2.0](https://github.com/tkddn204/HBnoticebot/blob/master/LICENSE)
